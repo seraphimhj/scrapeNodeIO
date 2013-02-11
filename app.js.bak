@@ -1,0 +1,70 @@
+/*!
+ * todo - app.js
+ * Copyright(c) 2012 fengmk2 <fengmk2@gmail.com>
+ * MIT Licensed
+ */
+
+
+/**
+ * Module dependencies.
+ */
+
+var nodeio= require('node.io');
+var path = require('path');
+var urlrouter = require('urlrouter');
+var render = require('connect-render');
+var routes = require('./routes');
+
+var app = connect(
+  connect.bodyParser(),
+  connect.cookieParser(),
+  connect.session({ secret: 'todo secret', key: 'sid' }),
+  connect.csrf()
+);
+
+/**
+ * Static files
+ */
+app.use('/public', connect.static(path.join(__dirname, 'public')));
+
+/**
+ * Template Engine helper
+ */
+app.use(render({
+  root: __dirname + '/views',
+  layout: 'layout.html',
+  cache: false, // must set `true` for prodution
+  helpers: {
+    _csrf: function (req, res) {
+      return req.session ? req.session._csrf : "";
+    },
+    now: function (req, res) {
+      return new Date();
+    }
+  }
+}));
+
+/**
+ * URL Routing
+ */
+app.use(urlrouter(routes));
+
+app.listen(1984);
+
+
+var Canvas = require('canvas')
+  , canvas = new Canvas(200,200)
+  , ctx = canvas.getContext('2d');
+
+ctx.font = '30px Impact';
+ctx.rotate(.1);
+ctx.fillText("Awesome!", 50, 100);
+
+var te = ctx.measureText('Awesome!');
+ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+ctx.beginPath();
+ctx.lineTo(50, 102);
+ctx.lineTo(50 + te.width, 102);
+ctx.stroke();
+
+console.log('<img src="' + canvas.toDataURL() + '" />');
