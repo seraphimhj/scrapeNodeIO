@@ -1,14 +1,9 @@
 nodeio = require 'node.io'
 fs = require 'fs'
-                    
-search_desc = []
-search_url = []
-                    
+
 output = []
 i = 0
-sample_input = url: "http://bj.fangjia.com/ershoufang/", currpage: 0, desc: "首页"
-if_use = ["区域：": true, "地铁：": true, "面积：": true, "总价：": true, "房型：": false, "楼层：": false, "类型：": false, "标签：": false]
-#select_search = 
+sample_input = {url: "http://bj.fangjia.com/ershoufang/", currpage: 0, desc: "首页"}
 
 class Soufang extends nodeio.JobClass
     input: false
@@ -23,7 +18,7 @@ class Soufang extends nodeio.JobClass
         ori_url = input['url']
         curr_page = parseInt input['currpage']
         if curr_page isnt 0
-            page_text = "|e-#{curr_page}"
+            page_text = "%7Ce-#{curr_page}"
         else
             page_text = ""
         url = "#{ori_url}#{page_text}"
@@ -34,34 +29,14 @@ class Soufang extends nodeio.JobClass
             @exit err if err
             try
                 if curr_page is 0
-                    next_input = []
-                    #search_desc = []
-                    #search_url = []
-                    $('div.search_list li').each (li) ->
-                        desc = $('label', li).text
-                        console.log "#{encodeURIComponent "|"} #{desc}"
-                        search_desc[desc] = []
-                        search_url[desc] = []
-                        $('div.items a', li).each (a) ->
-                            search_desc[desc].push a.children[0]['data']
-                            url = a.attribs.href.split "--", 2
-                            search_url[desc].push url[1]
-                        console.log search_desc[desc]
-                        console.log search_url[desc]
-                        #for flag, desc in if_use
-                        #    if flag
-                        #        next_input = next_input search_url for j in search_url
-                        #        first_true = i if first_true isnt 0
-                        #        for url_in, j in next_input
-                        #            next_input = "#{next_input[j]}#{encodeURIComponent "|"}#{url_part}" for url_part in search_url[desc]
-                        #            desc_input = "
-
-                        ###
+                    for li in $('div.search_list li')
+                    if $('label', ).text is "区域："
+                        $('div.items a', $('div.search_list li')).each (a) ->
                             next_input_instance = new Object
                             next_input_instance.url = "#{url}--r-#{encodeURIComponent a.children[0]['data']}"
                             next_input_instance.currpage = 0
                             next_input_instance.desc = "区域:#{a.children[0]['data']}"
-                            next_input.add [next_input_instance]
+                            self.add [next_input_instance]
                     if $('label', $('div.search_list li')).text is "板块："
                         $('div.items a', $('div.search_list li')).each (a) ->
                             next_input_instance = new Object
@@ -69,7 +44,6 @@ class Soufang extends nodeio.JobClass
                             next_input_instance.currpage = 1
                             next_input_instance.desc = "#{desc} 板块:#{a.children[0]['data']}"
                             self.add [next_input_instance]
-                        ###
                 else
                     for li in $('li[name="__page_click_area"]')
                         house = []
@@ -102,11 +76,9 @@ class Soufang extends nodeio.JobClass
     complete: ->
         type = @options.args[0]
         fw = fs.createWriteStream "./#{type}_output"
-        #for house in output
-        #    fw.write "#{house['desc']} #{house['title']} #{house['price']} #{house['addr']} #{house['attribs']} #{house['url']}"
-        #    fw.write "\n\n"
-        for desc, list of search_desc
-            fw.write "#{desc}\n#{list}\n"
+        for house in output
+            fw.write "#{house['desc']} #{house['title']} #{house['price']} #{house['addr']} #{house['attribs']} #{house['url']}"
+            fw.write "\n\n"
         fw.close
 
     fail: (input, err) ->
